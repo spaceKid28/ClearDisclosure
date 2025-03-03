@@ -11,6 +11,8 @@ import faiss
 import numpy as np
 # pickle is python package to write data 
 import pickle
+# could have used any pre-trained LLM... 
+# from langchain_community.llms import HuggingFaceHub  # Or use any other LLM
 
 
 def extract_text_from_pdf(pdf_path):
@@ -110,31 +112,19 @@ def retrieve_documents(query, top_k=5):
 
 query = "What are some strategic risks that are highlighted in Walmart's 2024 10-k?"
 
-from langchain.llms import HuggingFaceHub  # Or use any other LLM
+
 
 def answer_question(query):
     # Retrieve relevant documents
     docs = retrieve_documents(query)
     
-    # Create context from retrieved documents
-    context = "\n\n".join([doc["text"] for doc in docs])
+    # Format the response
+    response = f"Results for query: '{query}'\n\n"
     
-    # Create prompt with context
-    prompt = f"""Answer the question based on the following context:
+    for i, doc in enumerate(docs, 1):
+        response += f"Result {i} (from {doc['source']}):\n{doc['text']}\n\n"
+    
+    return response
 
-            Context:
-            {context}
-
-            Question: {query}
-
-            Answer:"""
-                
-                # Get response from LLM
-                # (Replace with your preferred LLM interface)
-                llm = HuggingFaceHub(repo_id="google/flan-t5-large")
-                response = llm(prompt)
-                
-                return {
-                    "answer": response,
-                    "sources": [doc["source"] for doc in docs]
-                }
+query = "What Strategic Risks were highlighted in Walmarts 2024 10-K report?"
+print(answer_question(query))

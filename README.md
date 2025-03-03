@@ -78,3 +78,9 @@ Implement simple RAG pipeline
 Test with sample financial questions
 End goal: System can answer basic questions about financial data using RAG
 
+
+conda env export > environment.yml
+
+https://github.com/Future-House/paper-qa?tab=readme-ov-file
+
+Step 1, implement the RAG agent so that it works on Walmart. You would be asking it a question from the command line.
