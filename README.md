@@ -1,86 +1,131 @@
-# ClearDisclosure
+README.md
+
 Name: Bennett Lincoln
-Proposal: RAG Agent SEC Filings
+Project: RAG Agent SEC Filings
 
-I want to create a RAG agent that can query a database of financial documents. The idea is to make it easier for journalists to hold corporations accountable, and reduce the manual labor of humans pouring through hundreds or thousands of pages of legalese. 
+RUNNING THE PROJECT LOCALLY: 
 
-The user will submit a prompt to the Agent; the answer should exist within the database.
+This project must be run locally. After the repo has been cloned, using your package manager of choice, please install the required libraries listed in environment.yml. Below is some sample code that I would use, using Conda as a package manager:
 
-Sample Prompts: How much did Walmart pay in corporate taxes in 2022? Did Williams Sonoma ever disclose how much of their cost of goods sold is imported from China? How much did ExxonMobile’s PAC contribute to political campaigns in 2018?
+    conda env create -f environment.yml
+    conda activate clearDis
 
-I would start by downloading Yearly and Quarterly Disclosures (10-k and 10-Q) from 5 or 6 publically traded companies for the past 5 years (I would start with Walmart, Exxon Mobile, Amazon, ect…) and store them in a document database. FIASS, which is provided by Meta, seems like a good database option. 
+Note that I have named this environment clearDis in the requirements.yml file
 
+Next, you must download the PDFs of the Financial disclosures from a google drive link here: https://drive.google.com/drive/folders/1C60vWf37T8fjHsqSl1E1bdcGd8YpL2xG?usp=drive_link
+
+Put these PDF files into a folder named "data" in the ClearDisclosure repository, at the same level as the folders "src" and "templates"
+
+Finally, run this command from the terminal to run the application: "python runner.py"
+
+The website should run locally and you should be able to access it using any web broswer (I use chrome): http://127.0.0.1:8000/
+
+Feel free to submit a query on the local webpage. The webpage should update in less than 90 seconds. After viewing the results, you can navigate back to the home page to submit another query by scrolling to the bottom and clicking the button.
+
+
+README:
+
+This is my implementation of a RAG agent that can query a database of financial documents. The idea is to reduce the manual labor of humans pouring through hundreds or thousands of pages of legalese. 
+
+The user will submit a Query on the webpage, such as: "What are some of Walmarts biggest strategic risks highlighted in their 10-K in 2024" and the application will convert that query into an vector representation, perform similarity search in the vector database of available Financial disclosures, returning the 3 most relevant "chunks" (200 tokens) of text.
+
+After the user has typed their query in the webpage and clicked submit, the webpage should reload and return the 3 most similar "chunks" to answer the question, along with the names of the Financial Documents the Chunks were pulled from. 
+
+EXTRA FUNCTIONALITY:
+
+I added a method to my RAGbot class that takes the relevant document chunks as context to LLM.  I used Microsoft's phi-2 model for mostly two reasons: a. the model is relatively small with only 2.7 Billion Parameters, and b. it is free and does not require any API tokens to access. Assuming the user creates their virtual environment from the environment.yml file, it should work correctly. 
+
+I was not able to get the LLM to output correctly in the FASTAPI. However, it worked on my machine with the following command from the terminal. As long as the first two commands are python llm.py, you can replace the rest with your query.
+
+    python llm.py What Strategic Risks were highlighted in Walmarts 2024 10-K report
+
+Feel free to try and generate a LLM response, but the time it will take to run inference on the model will dependent on your system. On my laptop it takes about 30 minutes to generate a reponse, but response times varied wildly during testing. 
+
+Here are some of the sources:
+(10-Ks and 10-Qs from publically traded companies) from https://www.bamsec.com/
+
+Vector Database I used for similarity search came from Meta: 
 https://engineering.fb.com/2017/03/29/data-infrastructure/faiss-a-library-for-efficient-similarity-search/
 
-Some other links that outline the more complex parts of the project:
+Some other links I used while developing my code for this project:
 
-RAG implementation in Python (I will ignore the SQL component in the below link):
+RAG implementation in Python (I ignored the SQL component in the below link):
 https://aws.amazon.com/blogs/machine-learning/build-a-robust-text-to-sql-solution-generating-complex-queries-self-correcting-and-querying-diverse-data-sources/
 
 Another project that implements RAG: 
 https://github.com/aws-samples/natural-language-querying-of-data-in-s3-with-athena-and-generative-ai-text-to-sql
 
-Finally, where I will pull the publicly available financial documents: https://www.bamsec.com/
-
-
-Notes from Professor Troy:
-I recommend taking a look at recent research on Supervised Fine Tuning (SFT). The following paper compares the two approaches on a specific problem focused on generating magnesium alloys, but the conclusions might generalize (and in fact you could evaluate that in this project, potentially) https://onlinelibrary.wiley.com/doi/10.1002/mgea.77
-
-Here's an audio clip of Malcolm Diggs explaining that paper, in case you have limited patience for reading academic language: https://s3.amazonaws.com/journalclub.io/pdgpt-sft-full.mp3
-
-
-Project Plan
-By the end of week 4, I will have explored web frameworks and made a basic web app that says “hello” 
-By the end of week 5, I will have a basic homepage, and I will have a data model that allows me to add cupcakes, which appear in a list on the homepage.
-By the end of week 6, I will have it so you can click on a cupcake, enter my name, enter a rating for that cupcake, and enter notes about that cupcake.
-By the end of week 7, I will add an “ingredients” section to my cupcakes, and I will be researching how I want to aggregate the ingredients data
-By the end of week 8, I will have the “my preferences” page which ranks which ingredients are my favorites based on how I am rating the cupcakes that contain them. 
-Finally, I will add some messaging to help people use my site, like “Sorry, you have to rate at least 5 cupcakes before we can calculate your preferences”
-
-Project Plan
-Week 1: Document Collection & Basic Processing
-
-Set up development environment
-Manually Download 10-K and 10-Q documents from ONE company (start with Walmart), from last year (10-Ks and 10-Qs) from https://www.bamsec.com/
-Create simple script to convert PDFs to text
-Basic text cleaning (remove headers, page numbers)
-End goal: Have clean text files from one company's financial documents stored in github repo
-
-Week 2: Document Database Setup
-
-Research and understand FAISS setup requirements
-Create document database structure
-Implement basic document storage
-Create simple script to add "cleaned" text documents to FAISS database
-End goal: Financial Documents for Walmart stored in FAISS with basic metadata
-
-Week 3: Text Chunking & Embeddings
-
-Implement document chunking strategy
-Test different chunk sizes
-Create embeddings pipeline
-Store embedded chunks in FAISS
-End goal: Ability to create and store embeddings for document chunks
-
-Week 4: Basic Retrieval (This will probably be the hardest for me)
-
-Implement similarity search
-Create simple script to query the database
-Test retrieval quality with sample questions
-Tune chunk size and similarity thresholds
-End goal: Can retrieve relevant document chunks for test questions
-
-Week 5: LLM Integration
-
-Set up LLM API connection (ChatGPT or Anthropic, probably Anthropic API)
-Create basic prompt template
-Implement simple RAG pipeline
-Test with sample financial questions
-End goal: System can answer basic questions about financial data using RAG
-
-
-conda env export > environment.yml
-
+Another project that I used for reference:
 https://github.com/Future-House/paper-qa?tab=readme-ov-file
 
-Step 1, implement the RAG agent so that it works on Walmart. You would be asking it a question from the command line.
+Here is the terminal output from the LLM, it took 35 minutes to run on my Machine:
+
+(clearDis) bennettlincoln@LAPTOP-PA16T0DR:~/repos/python_24/ClearDisclosure$ python llm.py What Strategic Risks were highlighted in Walmarts 2024 10-K report
+CONTEXT: Results for query: 'What Strategic Risks were highlighted in Walmarts 2024 10-K report'
+
+Result 1 (from 2024 10-K – Walmart Inc. – BamSEC.pdf):
+A description of any substantive amendment or waiver of Walmart's Reporting Protocols for Senior Financial Officers or our Code of
+Conduct for our chief executive officer, our chief financial officer and our controller, who is our principal accounting officer, will be
+disclosed on our website at www.stock.walmart.com under the Corporate Governance section. Any such description will be located on
+our website for a period of 12 months following the amendment or waiver.
+ITEM 1A.RISK FACTORS
+The risks described below could, in ways we may or may not be able to accurately predict, materially and adversely affect our business,
+results of operations, financial position and liquidity. Our business operations could also be affected by additional factors that apply to
+all companies operating in the U.S. and globally. The following risk factors do not identify all risks that we may face.
+Strategic Risks
+
+Result 2 (from Q2'25 10-Q – Walmart Inc. – BamSEC.pdf):
+323/2/25, 4:06 PM wmt-20240731
+https://www.bamsec.com/filing/10416924000141?cik=104169 40/44
+Table of Contents
+Risks, Factors and Uncertainties Regarding Our Business
+These forward-looking statements are subject to risks, uncertainties and other factors, domestically and internationally, including:
+Economic Factors
+•economic, geopolitical, capital markets and business conditions, trends and events around the world and in the markets in
+which Walmart operates;
+•currency exchange rate fluctuations;
+•changes in market rates of interest;
+•inflation or deflation, generally and in certain product categories;
+•transportation, energy and utility costs;
+•commodity prices, including the prices of oil and natural gas;
+•changes in market levels of wages;
+•changes in the size of various markets, including eCommerce markets;
+•unemployment levels;
+•consumer confidence, disposable income, credit availability, spending levels, shopping patterns, debt levels, and demand for
+certain merchandise;
+
+Result 3 (from Q1'25 10-Q – Walmart Inc. – BamSEC.pdf):
+condition or results of operations.
+313/2/25, 4:06 PM wmt-20240430
+https://www.bamsec.com/filing/10416924000105?cik=104169 38/42
+Table of Contents
+Risks, Factors and Uncertainties Regarding Our Business
+These forward-looking statements are subject to risks, uncertainties and other factors, domestically and internationally, including:
+Economic Factors
+•economic, geopolitical, capital markets and business conditions, trends and events around the world and in the markets in
+which Walmart operates;
+•currency exchange rate fluctuations;
+•changes in market rates of interest;
+•inflation or deflation, generally and in certain product categories;
+•transportation, energy and utility costs;
+•commodity prices, including the prices of oil and natural gas;
+•changes in market levels of wages;
+•changes in the size of various markets, including eCommerce markets;
+•unemployment levels;
+
+
+
+
+Loading checkpoint shards: 100%|██████████████████████████████████████████████████████████████████████████████████| 2/2 [00:00<00:00,  2.75it/s]
+Some parameters are on the meta device because they were offloaded to the disk and cpu.
+Setting `pad_token_id` to `eos_token_id`:50256 for open-end generation.
+
+The Strategic Risks highlighted in Walmarts 2024 10-K report are:
+1. Economic Factors: The risks associated with economic factors include changes in market levels of wages, unemployment levels, consumer confidence, disposable income, credit availability, spending levels, debt levels, and demand for certain merchandise. These factors can affect the business operations of Walmart and may have a material and adverse impact on their financial position and liquidity.
+
+2. Currency Exchange Rate Fluctuations: Walmart operates globally and is subject to currency exchange rate fluctuations. Any significant changes in exchange rates can affect the company's profitability and financial performance.
+
+3. Changes in Market Rates of Interest: Changes in market rates of interest can impact Walmart's ability to borrow funds and affect their cost of capital. Higher interest rates can increase the cost of financing and may lead to lower profitability.
+
+4. Inflation or Deflation, Generally and in Certain Product Categories: Inflation or deflation can impact the purchasing power of consumers
+Program has completed

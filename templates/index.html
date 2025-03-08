@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClearDisclosure</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
+
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(135deg, #362d36, #9011da);
+        }
+
+        h1 {
+            font-size: 4em;
+            color: #ffffff;
+            text-shadow: 2px 2px 4px #000000;
+        }
+
+        form {
+            margin-top: 20px;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            font-size: 1.2em;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            width: 300px;
+        }
+
+        input[type="submit"] {
+            padding: 10px 20px;
+            font-size: 1.2em;
+            border-radius: 5px;
+            border: none;
+            background-color: #54e79e;
+            color: #fff;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #45c78e;
+        }
+
+        .results {
+            margin-top: 20px;
+            color: #ffffff;
+        }
+
+        .result-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+        }
+
+        .back-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            border-radius: 5px;
+            border: none;
+            background-color: #54e79e;
+            color: #fff;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .back-button:hover {
+            background-color: #45c78e;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Welcome to ClearDisclosure</h1>
+    <form action="/submit" method="post">
+        <input type="text" name="user_input" placeholder="Enter your query here">
+        <input type="submit" value="Submit">
+    </form>
+
+    {% if response %}
+    <div class="results">
+        <h2>Relevant Documents:</h2>
+        {% for doc in response %}
+        <div class="result-item">
+            <p><strong>Source:</strong> {{ doc.source }}</p>
+            <p>{{ doc.text }}</p>
+        </div>
+        {% endfor %}
+    </div>
+    <a href="/" class="back-button">Back to Homepage</a>
+    {% endif %}
+</body>
+
+</html>

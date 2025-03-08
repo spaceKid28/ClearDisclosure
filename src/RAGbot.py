@@ -13,7 +13,10 @@ import numpy as np
 import pickle
 import os
 import torch
-from transformers import GPT2LMHeadModel, GPT2Tokenizer  # Import GPT-2 model and tokenizer from HuggingFace (I didn't want to pay for tokens so decided to use GPT-2)
+# from transformers import GPT2LMHeadModel, GPT2Tokenizer  # Import GPT-2 model and tokenizer from HuggingFace (I didn't want to pay for tokens so decided to use GPT-2)
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+
 
 class RAGbot:
     # class variables that are accessible by all methods
@@ -22,14 +25,12 @@ class RAGbot:
     # Load embedding model from HuggingFace: https://huggingface.co/sentence-transformers/
     embedding_model = SentenceTransformer('all-MiniLM-L6-v2')  # I used the smallest model so that I could run it locally on my machine.    
     
-    tokenizer = GPT2Tokenizer.from_pretrained("gpt2")  # Initialize the GPT-2 tokenizer
-    llm = GPT2LMHeadModel.from_pretrained("gpt2")  # Initialize the GPT-2 model
-
     def __init__(self, pdf_directory="./data/"):
         # Directory containing your PDFs, by default it is labeled data and in the same working directory as /src/
         self.pdf_directory = pdf_directory
         
     def clean(self):
+
         self.write_pdfs_to_strings() # this method writes to documents class variable
         self.chunking()
         self.create_embeddings()
@@ -80,6 +81,10 @@ class RAGbot:
         index = faiss.IndexFlatL2(dimension)  # L2 distance (Euclidean)
         index.add(embeddings_np) # FAISS allows us to calculate similarity between vectors (I've chosen to use Euclidian Distance, but we could tinker and see which gives us the best results (Manhattan, Cosine, ect...))
         
+        
+        if not os.path.exists("./output/"): # make sure the output directory exists before we write to it
+            os.makedirs("./output/")
+
         faiss.write_index(index, "./output/pdf_embeddings.index") # we save the embeddings, which are numeric vectors
 
         # Save chunks data separately (to maintain text-embedding, remember that later on we will want to know which Documents our RAG agent used to generate its responses)
@@ -117,30 +122,42 @@ class RAGbot:
         for i, doc in enumerate(docs, 1): # Change 0 index to start at 1 index
             context += f"Result {i} (from {doc['source']}):\n{doc['text']}\n\n"
         
-        print(f"CONTEXT: {context}\n\n")
-        # Use the LLM to generate a response based on the context
-        # IMPORTANT: Because I am using chat-gpt2, I must limit my input to 1000 tokens... would improve if I could provide more context
-        # but I want it to run locally, so that is the compromise I made
+        print(f"CONTEXT: {context}\n\n") # Prints the context to the terminal, so you know exactly what strings the LLM received from which Financial documents
 
-        # Set pad_token if it doesn't exist
-        if self.tokenizer.pad_token is None:
-            self.tokenizer.pad_token = self.tokenizer.eos_token
+
+        # Build out a string that represents the prompt to phi-2, includes strings from top_k most similar documents as context
+        prompt = f"Based on the following information, please answer this question: {query}\n\nContext:\n{context}\n\nAnswer:"
         
-            # Ensure we're not exceeding model's position embedding limit
-        inputs = self.tokenizer.encode(context, return_tensors="pt", truncation=True, max_length=900)
+        # Initialize the model and tokenizer if not already done
+        if not hasattr(self, 'llm') or not hasattr(self, 'tokenizer'):
+            from transformers import AutoModelForCausalLM, AutoTokenizer
+            import torch
+            
+            # Phi-2 is small but capable
+            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/phi-2")
+            self.llm = AutoModelForCausalLM.from_pretrained(
+                "microsoft/phi-2", 
+                torch_dtype=torch.float16,  # Use half precision to save memory
+                device_map="auto"           # Use GPU if available
+            )
         
-        # Generate response
-        outputs = self.llm.generate(
-            inputs,
-            max_new_tokens=150,
-            num_return_sequences=1,
-            pad_token_id=self.tokenizer.eos_token_id
-        )
+        # Tokenize the prompt (Phi-2 has its own prompt format)
+        inputs = self.tokenizer(prompt, return_tensors="pt", truncation=True, max_length=2048)
+        inputs = {k: v.to(self.llm.device) for k, v in inputs.items()}
         
-        # Extract only the new tokens (not the input)
-        input_length = inputs.shape[1]
-        response = self.tokenizer.decode(outputs[0][input_length:], skip_special_tokens=True)
+        # Generate the response
+        with torch.no_grad():
+            outputs = self.llm.generate(
+                **inputs,
+                max_new_tokens=200,
+                temperature=0.7,
+                top_p=0.9,
+                do_sample=True
+            )
         
+        # Decode the response (only new tokens)
+        response = self.tokenizer.decode(outputs[0][inputs["input_ids"].shape[1]:], skip_special_tokens=True)
         return response
+        
 
  
