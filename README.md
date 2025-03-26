@@ -10,9 +10,10 @@ This project must be run locally. After the repo has been cloned, using your pac
     conda env create -f environment.yml
     conda activate clearDis
 
-Note that I have named this environment clearDis in the requirements.yml file
+Note that I have named this environment clearDis in the environment.yml file
 
-Next, you must download the PDFs of the Financial disclosures from a google drive link here: https://drive.google.com/drive/folders/1C60vWf37T8fjHsqSl1E1bdcGd8YpL2xG?usp=drive_link
+Next, you must download the PDFs of the Financial disclosures from a google drive link here: 
+
 
 Put these PDF files into a folder named "data" in the ClearDisclosure repository, at the same level as the folders "src" and "templates"
 
