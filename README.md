@@ -39,7 +39,7 @@ I was not able to get the LLM to output correctly in the FASTAPI. However, it wo
 
     python llm.py What Strategic Risks were highlighted in Walmarts 2024 10-K report
 
-Feel free to try and generate a LLM response, but the time it will take to run inference on the model will dependent on your system. On my laptop it takes about 30 minutes to generate a reponse, but response times varied wildly during testing. 
+Feel free to try and generate a LLM response, but the time it will take to run inference on the model will be dependent on your system. On my laptop it takes about 30 minutes to generate a reponse, but response times varied wildly during testing. 
 
 Here are some of the sources:
 (10-Ks and 10-Qs from publically traded companies) from https://www.bamsec.com/
@@ -61,6 +61,8 @@ https://github.com/Future-House/paper-qa?tab=readme-ov-file
 Here is the terminal output from the LLM, it took 35 minutes to run on my Machine:
 
 (clearDis) bennettlincoln@LAPTOP-PA16T0DR:~/repos/python_24/ClearDisclosure$ python llm.py What Strategic Risks were highlighted in Walmarts 2024 10-K report
+
+
 CONTEXT: Results for query: 'What Strategic Risks were highlighted in Walmarts 2024 10-K report'
 
 Result 1 (from 2024 10-K – Walmart Inc. – BamSEC.pdf):
